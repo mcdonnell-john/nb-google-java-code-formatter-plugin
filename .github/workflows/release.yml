@@ -3,8 +3,6 @@ name: Release
 # Run workflow only on commits to `master`
 on:
   push:
-    branches:
-      - master
     tags:        
       - v*
 
