@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jmcdonnell.netbeans.plugin.google.java.codeformatter.ui;
+package net.johnmcdonnell.netbeans.plugin.google.java.codeformatter.ui;
 
 import javax.swing.JComponent;
 import org.netbeans.api.project.Project;

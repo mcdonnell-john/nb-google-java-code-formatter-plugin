@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jmcdonnell.netbeans.plugin.google.java.codeformatter.task;
+package net.johnmcdonnell.netbeans.plugin.google.java.codeformatter.task;
 
 import java.util.logging.Logger;
 import javax.swing.text.StyledDocument;
-import org.jmcdonnell.netbeans.plugin.google.java.codeformatter.format.GoogleCodeFormatter;
+import net.johnmcdonnell.netbeans.plugin.google.java.codeformatter.format.GoogleCodeFormatter;
 import org.netbeans.api.editor.mimelookup.MimeRegistration;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
