@@ -1,0 +1,24 @@
+name: Release
+
+# Run workflow only on commits to `master`
+on:
+  push:
+    branches:
+      - master
+    tags:        
+      - v*
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v1
+
+      - name: Release to Central Repository
+        uses: samuelmeuli/action-maven-publish@master
+        with:
+          gpg_private_key: ${{ secrets.gpg_private_key }}
+          gpg_passphrase: ${{ secrets.gpg_passphrase }}
+          ossrh_username: ${{ secrets.ossrh_username }}
+          ossrh_password: ${{ secrets.ossrh_password }}
