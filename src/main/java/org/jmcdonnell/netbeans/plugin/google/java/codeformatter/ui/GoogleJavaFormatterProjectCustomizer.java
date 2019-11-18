@@ -42,7 +42,7 @@ public class GoogleJavaFormatterProjectCustomizer implements ProjectCustomizer.C
     @Override
     public ProjectCustomizer.Category createCategory(Lookup look) {
         return ProjectCustomizer.Category.create("google-java-code-formatter",
-                 "Google Java Code Formatter",
+                 "Google Java Style",
                 null);
     }
 
