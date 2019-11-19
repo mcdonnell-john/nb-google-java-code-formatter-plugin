@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.johnmcdonnell.netbeans</groupId>
     <artifactId>nb-google-java-code-formatter-plugin</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>nbm</packaging>
     <name>NetBeans Google Code Format Plugin</name>
     <description>An Apache NetBeans plugin to provide a Google Java Style Code Formatter.</description>
@@ -206,6 +206,13 @@
                                 </goals>
                             </execution>
                         </executions>
+                        <configuration>
+                            <!-- Prevent `gpg` from using pinentry programs -->
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>    
                     </plugin>
                 </plugins>
             </build>
