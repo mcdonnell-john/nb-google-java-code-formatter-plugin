@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.johnmcdonnell.netbeans</groupId>
     <artifactId>nb-google-java-code-formatter-plugin</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>nbm</packaging>
     <name>NetBeans Google Code Format Plugin</name>
     <description>An Apache NetBeans plugin to provide a Google Java Style Code Formatter.</description>
@@ -27,7 +27,7 @@
         <connection>scm:git:https://github.com/mcdonnell-john/nb-google-java-code-formatter-plugin.git</connection>
         <developerConnection>scm:git:https://github.com/mcdonnell-john/nb-google-java-code-formatter-plugin.git</developerConnection>
         <url>https://github.com/mcdonnell-john/nb-google-java-code-formatter-plugin</url>
-        <tag>HEAD</tag>
+        <tag>v1.0.0</tag>
     </scm>
     
     <distributionManagement>
