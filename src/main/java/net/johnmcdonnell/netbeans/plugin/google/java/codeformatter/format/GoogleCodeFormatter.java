@@ -15,13 +15,17 @@
  */
 package net.johnmcdonnell.netbeans.plugin.google.java.codeformatter.format;
 
-import com.google.googlejavaformat.java.Formatter;
-import com.google.googlejavaformat.java.FormatterException;
-import com.google.googlejavaformat.java.JavaFormatterOptions;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.StyledDocument;
-import org.openide.text.NbDocument;
-import org.openide.util.Exceptions;
+import com.github.difflib.DiffUtils;
+import com.github.difflib.algorithm.DiffException;
+import com.github.difflib.patch.AbstractDelta;
+import com.github.difflib.patch.Patch;
+ import com.google.googlejavaformat.java.Formatter;
+ import com.google.googlejavaformat.java.FormatterException;
+ import com.google.googlejavaformat.java.JavaFormatterOptions;
+ import javax.swing.text.BadLocationException;
+ import javax.swing.text.StyledDocument;
+ import org.openide.text.NbDocument;
+ import org.openide.util.Exceptions;
 
 /**
  *
@@ -30,23 +34,24 @@ import org.openide.util.Exceptions;
 public class GoogleCodeFormatter {
 
     public void format(StyledDocument document) {
-        Formatter formatter = new Formatter(JavaFormatterOptions.defaultOptions());
-        try {
-            int length = document.getLength();
-
-            String formatSourceAndFixImports = formatter.formatSourceAndFixImports(document.getText(0, document.getLength()));
-
-            NbDocument.runAtomicAsUser(document, () -> {
-                try {
-                    document.remove(0, length);
-                    document.insertString(0, formatSourceAndFixImports, null);
-                } catch (BadLocationException ex) {
-                    Exceptions.printStackTrace(ex);
-                }
-            });
-
-        } catch (FormatterException | BadLocationException ex) {
-            Exceptions.printStackTrace(ex);
-        }
-    }
+         Formatter formatter = new Formatter(JavaFormatterOptions.defaultOptions());
+         try {
+            final String existingText = document.getText(0, document.getLength());
+ 
+            final String formatSourceAndFixImports = formatter.formatSourceAndFixImports(existingText);
+ 
+            if (formatSourceAndFixImports != null && !formatSourceAndFixImports.equals(existingText)) {
+                 try {
+                    Patch<String> diff = DiffUtils.diff(existingText, formatSourceAndFixImports, null);
+                    for (AbstractDelta<String> delta : diff.getDeltas()) {
+                        NbDocument.runAtomicAsUser(document, new DocumentDeltaUpdater(delta, document));
+                    }
+                } catch (DiffException ex) {
+                     Exceptions.printStackTrace(ex);
+                 }
+            }
+         } catch (FormatterException | BadLocationException ex) {
+             Exceptions.printStackTrace(ex);
+         }
+     }
 }
