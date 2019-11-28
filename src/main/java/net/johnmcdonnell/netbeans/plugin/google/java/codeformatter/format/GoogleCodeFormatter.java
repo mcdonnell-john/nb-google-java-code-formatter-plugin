@@ -18,14 +18,15 @@ package net.johnmcdonnell.netbeans.plugin.google.java.codeformatter.format;
 import com.github.difflib.DiffUtils;
 import com.github.difflib.algorithm.DiffException;
 import com.github.difflib.patch.AbstractDelta;
-import com.github.difflib.patch.Patch;
- import com.google.googlejavaformat.java.Formatter;
- import com.google.googlejavaformat.java.FormatterException;
- import com.google.googlejavaformat.java.JavaFormatterOptions;
- import javax.swing.text.BadLocationException;
- import javax.swing.text.StyledDocument;
- import org.openide.text.NbDocument;
- import org.openide.util.Exceptions;
+import com.google.googlejavaformat.java.Formatter;
+import com.google.googlejavaformat.java.FormatterException;
+import com.google.googlejavaformat.java.JavaFormatterOptions;
+import static java.util.Comparator.comparing;
+import java.util.List;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.StyledDocument;
+import org.openide.text.NbDocument;
+import org.openide.util.Exceptions;
 
 /**
  *
@@ -34,24 +35,29 @@ import com.github.difflib.patch.Patch;
 public class GoogleCodeFormatter {
 
     public void format(StyledDocument document) {
-         Formatter formatter = new Formatter(JavaFormatterOptions.defaultOptions());
-         try {
+        Formatter formatter = new Formatter(JavaFormatterOptions.defaultOptions());
+        try {
             final String existingText = document.getText(0, document.getLength());
- 
+
             final String formatSourceAndFixImports = formatter.formatSourceAndFixImports(existingText);
- 
+
             if (formatSourceAndFixImports != null && !formatSourceAndFixImports.equals(existingText)) {
-                 try {
-                    Patch<String> diff = DiffUtils.diff(existingText, formatSourceAndFixImports, null);
-                    for (AbstractDelta<String> delta : diff.getDeltas()) {
+                try {
+                    List<AbstractDelta<String>> deltas = DiffUtils.diff(existingText, formatSourceAndFixImports, null).getDeltas();
+                    for (AbstractDelta<String> delta : sortDeltas(deltas)) {
                         NbDocument.runAtomicAsUser(document, new DocumentDeltaUpdater(delta, document));
                     }
                 } catch (DiffException ex) {
-                     Exceptions.printStackTrace(ex);
-                 }
+                    Exceptions.printStackTrace(ex);
+                }
             }
-         } catch (FormatterException | BadLocationException ex) {
-             Exceptions.printStackTrace(ex);
-         }
-     }
+        } catch (FormatterException | BadLocationException ex) {
+            Exceptions.printStackTrace(ex);
+        }
+    }
+
+    private List<AbstractDelta<String>> sortDeltas(List<AbstractDelta<String>> deltas) {
+        deltas.sort(comparing(d -> d.getSource().getPosition()));
+        return deltas;
+    }
 }

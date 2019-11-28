@@ -62,22 +62,32 @@ public class DocumentDeltaUpdater implements Runnable {
     }
 
     private void insertLinesToDocument() throws BadLocationException {
-        int findLineOffset = NbDocument.findLineOffset(document, delta.getTarget().getPosition());
-
-        for (int idx = 0; idx < delta.getTarget().getLines().size(); idx++) {
-            document.insertString(findLineOffset + idx, delta.getTarget().getLines().get(idx) + "\n", null);
-        }
+        int position = delta.getSource().getPosition();
+        int findLineOffset = NbDocument.findLineOffset(document, position);
+        
+        StringBuffer contentToAdd = new StringBuffer();
+        delta.getTarget().getLines().forEach((String line) -> {
+            contentToAdd.append(line)
+                    .append("\n");
+        });
+        document.insertString(findLineOffset, contentToAdd.toString(), null);
     }
 
     private void removeLinesFromDocument() throws BadLocationException {
-        delta.getSource().getLines().forEach((t) -> {
-            try {
-                Element rootLineElement = NbDocument.findLineRootElement(document);
-                Element element = rootLineElement.getElement(delta.getSource().getPosition());
-                document.remove(element.getStartOffset(), element.getEndOffset() - element.getStartOffset());
-            } catch (BadLocationException ex) {
-                Exceptions.printStackTrace(ex);
-            }
-        });
+        int position = delta.getSource().getPosition();
+        int offset = 0;
+        
+        offset = delta.getSource().getLines()
+                .stream()
+                .map((line) -> line.length() + "\n".length())
+                .reduce(offset, Integer::sum);
+        
+        try {
+            Element rootLineElement = NbDocument.findLineRootElement(document);
+            Element element = rootLineElement.getElement(position);
+            document.remove(element.getStartOffset(), offset);
+        } catch (BadLocationException ex) {
+            Exceptions.printStackTrace(ex);
+        }
     }
 }

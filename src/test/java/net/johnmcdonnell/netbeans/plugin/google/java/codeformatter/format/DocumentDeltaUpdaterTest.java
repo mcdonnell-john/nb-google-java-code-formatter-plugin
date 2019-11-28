@@ -32,63 +32,63 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author John McDonnell
  */
 public class DocumentDeltaUpdaterTest {
-    
+
     @Test
     public void testHandlingOfInsertDelta() throws BadLocationException {
         // Given
-        Chunk originalChunk = new Chunk(3,  Collections.singletonList("        System.out.println(\"Test Line 2\");"));
+        Chunk originalChunk = new Chunk(3, Collections.singletonList("        System.out.println(\"Test Line 2\");"));
         Chunk revisedChunk = new Chunk(3, Collections.singletonList("        System.out.println(\"Test Line 1.5\");"));
         InsertDelta insertDelta = new InsertDelta(originalChunk, revisedChunk);
-        StyledDocument documentToUpdate = getTestDocument();
+        StyledDocument documentToUpdate = getBasicTestDocument();
         int initialLength = documentToUpdate.getLength();
         int initialRowCount = documentToUpdate.getDefaultRootElement().getElementCount();
-        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(insertDelta, documentToUpdate);
-        
+
         //When
+        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(insertDelta, documentToUpdate);
         instance.run();
-        
+
         //Then
-        assertTrue(!documentToUpdate.equals(getTestDocument()));
+        assertTrue(!documentToUpdate.equals(getBasicTestDocument()));
         assertTrue(documentToUpdate.getLength() > initialLength);
         assertTrue(documentToUpdate.getDefaultRootElement().getElementCount() == initialRowCount + 1);
     }
-    
+
     @Test
     public void testHandlingOfDeleteDelta() throws BadLocationException {
         // Given
-        Chunk originalChunk = new Chunk(3,  Collections.singletonList("        System.out.println(\"Test Line 2\");"));
+        Chunk originalChunk = new Chunk(3, Collections.singletonList("        System.out.println(\"Test Line 2\");"));
         Chunk revisedChunk = new Chunk(3, Collections.singletonList("        System.out.println(\"Test Line 1.5\");"));
         DeleteDelta deleteDelta = new DeleteDelta(originalChunk, revisedChunk);
-        StyledDocument documentToUpdate = getTestDocument();
+        StyledDocument documentToUpdate = getBasicTestDocument();
         int initialLength = documentToUpdate.getLength();
         int initialRowCount = documentToUpdate.getDefaultRootElement().getElementCount();
-        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(deleteDelta, documentToUpdate);
-        
+
         //When
+        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(deleteDelta, documentToUpdate);
         instance.run();
-        
+
         //Then
-        assertTrue(!documentToUpdate.equals(getTestDocument()));
+        assertTrue(!documentToUpdate.equals(getBasicTestDocument()));
         assertTrue(documentToUpdate.getLength() < initialLength);
         assertTrue(documentToUpdate.getDefaultRootElement().getElementCount() == initialRowCount - 1);
     }
-    
+
     @Test
     public void testHandlingOfChangeDelta() throws BadLocationException {
         // Given
-        Chunk originalChunk = new Chunk(3,  Collections.singletonList("        System.out.println(\"Test Line 2\");"));
+        Chunk originalChunk = new Chunk(3, Collections.singletonList("        System.out.println(\"Test Line 2\");"));
         Chunk revisedChunk = new Chunk(3, Collections.singletonList("        System.out.println(\"Test Line 3\");"));
         ChangeDelta changeDelta = new ChangeDelta(originalChunk, revisedChunk);
-        StyledDocument documentToUpdate = getTestDocument();
+        StyledDocument documentToUpdate = getBasicTestDocument();
         int initialLength = documentToUpdate.getLength();
         int initialRowCount = documentToUpdate.getDefaultRootElement().getElementCount();
-        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(changeDelta, documentToUpdate);
-        
+
         //When
+        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(changeDelta, documentToUpdate);
         instance.run();
-        
+
         //Then
-        assertTrue(!documentToUpdate.equals(getTestDocument()));
+        assertTrue(!documentToUpdate.equals(getBasicTestDocument()));
         assertTrue(documentToUpdate.getLength() == initialLength);
         assertTrue(documentToUpdate.getDefaultRootElement().getElementCount() == initialRowCount);
     }
@@ -96,32 +96,90 @@ public class DocumentDeltaUpdaterTest {
     @Test
     public void testHandlingOfDeleteDeltaOfMultipleLines() throws BadLocationException {
         // Given
-        Chunk originalChunk = new Chunk(2,  Arrays.asList("        System.out.println(\"Test Line 1\");","        System.out.println(\"Test Line 2\");"));
+        Chunk originalChunk = new Chunk(2, Arrays.asList("        System.out.println(\"Test Line 1\");", "        System.out.println(\"Test Line 2\");"));
         Chunk revisedChunk = new Chunk(3, Collections.singletonList("        System.out.println(\"Test Line 1.5\");"));
         DeleteDelta deleteDelta = new DeleteDelta(originalChunk, revisedChunk);
-        StyledDocument documentToUpdate = getTestDocument();
+        StyledDocument documentToUpdate = getBasicTestDocument();
         int initialLength = documentToUpdate.getLength();
         int initialRowCount = documentToUpdate.getDefaultRootElement().getElementCount();
-        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(deleteDelta, documentToUpdate);
-        
+
         //When
+        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(deleteDelta, documentToUpdate);
         instance.run();
-        
+
         //Then
-        assertTrue(!documentToUpdate.equals(getTestDocument()));
+        assertTrue(!documentToUpdate.equals(getBasicTestDocument()));
         assertTrue(documentToUpdate.getLength() < initialLength);
         assertTrue(documentToUpdate.getDefaultRootElement().getElementCount() == initialRowCount - 2);
     }
-    
-    private StyledDocument getTestDocument() throws BadLocationException {
+
+    @Test
+    public void testHandlingOfMultipleDiffsCorrectly() throws BadLocationException {
+        // Given
+        Chunk originalChunk1 = new Chunk(2, Arrays.asList("/** @author john", "", "", "", "", "", "", "*/"));
+        Chunk revisedChunk1 = new Chunk(3, Collections.singletonList("/** @author john */"));
+        ChangeDelta changeDelta1 = new ChangeDelta(originalChunk1, revisedChunk1);
+        
+        Chunk originalChunk2 = new Chunk(12, Arrays.asList("    public void test() ", "    {", "        Number num", "                ;", "    }"));
+        Chunk revisedChunk2 = new Chunk(5, Arrays.asList("  public void test() {", "    Number num;", "  }"));
+        ChangeDelta changeDelta2 = new ChangeDelta(originalChunk2, revisedChunk2);
+        
+        StyledDocument documentToUpdate = getMultipleIssueDocument();
+
+        //When
+        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(changeDelta2, documentToUpdate);
+        instance.run();
+        instance = new DocumentDeltaUpdater(changeDelta1, documentToUpdate);
+        instance.run();
+
+        //Then
+        assertTrue(!documentToUpdate.equals(getMultipleIssueDocument()));
+        assertTrue(getMultipleIssueSolution().equals(documentToUpdate.getText(0, documentToUpdate.getLength())));
+    }
+
+    private StyledDocument getBasicTestDocument() throws BadLocationException {
         StyledDocument document = new DefaultStyledDocument();
-        document.insertString(0, "public class TestClass {\n" +
-"    public static void main(String[] args) {\n" +
-"        System.out.println(\"Test Line 1\");\n" +
-"        System.out.println(\"Test Line 2\");\n" +
-"    }\n" +
-"}", null);
+        document.insertString(0, "public class TestClass {\n"
+                + "    public static void main(String[] args) {\n"
+                + "        System.out.println(\"Test Line 1\");\n"
+                + "        System.out.println(\"Test Line 2\");\n"
+                + "    }\n"
+                + "}", null);
         return document;
     }
-    
+
+    private StyledDocument getMultipleIssueDocument() throws BadLocationException {
+        StyledDocument document = new DefaultStyledDocument();
+        document.insertString(0, "package test;\n"
+                + "\n"
+                + "/** @author john\n"
+                + "\n"
+                + "\n"
+                + "\n"
+                + "\n"
+                + "\n"
+                + "\n"
+                + "*/\n"
+                + "public class TestClass {\n"
+                + "\n"
+                + "    public void test() \n"
+                + "    {\n"
+                + "        Number num\n"
+                + "                ;\n"
+                + "    }\n"
+                + "}", null);
+        return document;
+    }
+
+    private String getMultipleIssueSolution() {
+        return "package test;\n"
+                + "\n"
+                + "/** @author john */\n"
+                + "public class TestClass {\n"
+                + "\n"
+                + "  public void test() {\n"
+                + "    Number num;\n"
+                + "  }\n"
+                + "}";
+    }
 }
