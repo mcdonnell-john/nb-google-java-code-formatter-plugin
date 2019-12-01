@@ -15,21 +15,22 @@
  */
 package net.johnmcdonnell.netbeans.plugin.google.java.codeformatter.format;
 
+import static java.util.Comparator.comparing;
+
 import com.github.difflib.DiffUtils;
 import com.github.difflib.algorithm.DiffException;
 import com.github.difflib.patch.AbstractDelta;
 import com.google.googlejavaformat.java.Formatter;
 import com.google.googlejavaformat.java.FormatterException;
 import com.google.googlejavaformat.java.JavaFormatterOptions;
-import static java.util.Comparator.comparing;
 import java.util.List;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
+import org.netbeans.api.editor.guards.GuardedSectionManager;
 import org.openide.text.NbDocument;
 import org.openide.util.Exceptions;
 
 /**
- *
  * @author John McDonnell
  */
 public class GoogleCodeFormatter {
@@ -43,9 +44,14 @@ public class GoogleCodeFormatter {
 
             if (formatSourceAndFixImports != null && !formatSourceAndFixImports.equals(existingText)) {
                 try {
-                    List<AbstractDelta<String>> deltas = DiffUtils.diff(existingText, formatSourceAndFixImports, null).getDeltas();
-                    for (AbstractDelta<String> delta : sortDeltas(deltas)) {
-                        NbDocument.runAtomicAsUser(document, new DocumentDeltaUpdater(delta, document));
+                    List<AbstractDelta<String>> deltas
+                            = sortDeltas(DiffUtils.diff(existingText, formatSourceAndFixImports, null).getDeltas());
+
+                    GuardedSectionManager guards = GuardedSectionManager.getInstance(document);
+                    final boolean hasGuardedSections = guards != null;
+                    if (!hasGuardedSections) {
+                        NbDocument.runAtomicAsUser(
+                                document, new DocumentDeltaUpdater(deltas, document));
                     }
                 } catch (DiffException ex) {
                     Exceptions.printStackTrace(ex);

@@ -15,7 +15,7 @@
  */
 
 package net.johnmcdonnell.netbeans.plugin.google.java.codeformatter.ui;
-
+ 
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.net.MalformedURLException;
@@ -98,8 +98,8 @@ public class GoogleJavaFormatterPanel extends javax.swing.JPanel {
     private void chkEnableGoogleStyleFormatterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chkEnableGoogleStyleFormatterActionPerformed
         auxiliaryProperties.put("isGoogleJavaCodeFormatterEnabled", chkEnableGoogleStyleFormatter.isSelected() ? "true" : "false", true);
     }//GEN-LAST:event_chkEnableGoogleStyleFormatterActionPerformed
-
-
+ 
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnHyperlinkToStyleGuide;
     private javax.swing.JCheckBox chkEnableGoogleStyleFormatter;

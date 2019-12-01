@@ -44,7 +44,7 @@ public class DocumentDeltaUpdaterTest {
         int initialRowCount = documentToUpdate.getDefaultRootElement().getElementCount();
 
         //When
-        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(insertDelta, documentToUpdate);
+        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(Collections.singletonList(insertDelta), documentToUpdate);
         instance.run();
 
         //Then
@@ -64,7 +64,7 @@ public class DocumentDeltaUpdaterTest {
         int initialRowCount = documentToUpdate.getDefaultRootElement().getElementCount();
 
         //When
-        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(deleteDelta, documentToUpdate);
+        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(Collections.singletonList(deleteDelta), documentToUpdate);
         instance.run();
 
         //Then
@@ -84,7 +84,7 @@ public class DocumentDeltaUpdaterTest {
         int initialRowCount = documentToUpdate.getDefaultRootElement().getElementCount();
 
         //When
-        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(changeDelta, documentToUpdate);
+        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(Collections.singletonList(changeDelta), documentToUpdate);
         instance.run();
 
         //Then
@@ -97,14 +97,14 @@ public class DocumentDeltaUpdaterTest {
     public void testHandlingOfDeleteDeltaOfMultipleLines() throws BadLocationException {
         // Given
         Chunk originalChunk = new Chunk(2, Arrays.asList("        System.out.println(\"Test Line 1\");", "        System.out.println(\"Test Line 2\");"));
-        Chunk revisedChunk = new Chunk(3, Collections.singletonList("        System.out.println(\"Test Line 1.5\");"));
+        Chunk revisedChunk = new Chunk(2, Collections.singletonList("        System.out.println(\"Test Line 1.5\");"));
         DeleteDelta deleteDelta = new DeleteDelta(originalChunk, revisedChunk);
         StyledDocument documentToUpdate = getBasicTestDocument();
         int initialLength = documentToUpdate.getLength();
         int initialRowCount = documentToUpdate.getDefaultRootElement().getElementCount();
 
         //When
-        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(deleteDelta, documentToUpdate);
+        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(Collections.singletonList(deleteDelta), documentToUpdate);
         instance.run();
 
         //Then
@@ -117,7 +117,7 @@ public class DocumentDeltaUpdaterTest {
     public void testHandlingOfMultipleDiffsCorrectly() throws BadLocationException {
         // Given
         Chunk originalChunk1 = new Chunk(2, Arrays.asList("/** @author john", "", "", "", "", "", "", "*/"));
-        Chunk revisedChunk1 = new Chunk(3, Collections.singletonList("/** @author john */"));
+        Chunk revisedChunk1 = new Chunk(2, Collections.singletonList("/** @author john */"));
         ChangeDelta changeDelta1 = new ChangeDelta(originalChunk1, revisedChunk1);
         
         Chunk originalChunk2 = new Chunk(12, Arrays.asList("    public void test() ", "    {", "        Number num", "                ;", "    }"));
@@ -127,16 +127,14 @@ public class DocumentDeltaUpdaterTest {
         StyledDocument documentToUpdate = getMultipleIssueDocument();
 
         //When
-        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(changeDelta2, documentToUpdate);
+        DocumentDeltaUpdater instance = new DocumentDeltaUpdater(Arrays.asList(changeDelta1, changeDelta2), documentToUpdate);
         instance.run();
-        instance = new DocumentDeltaUpdater(changeDelta1, documentToUpdate);
-        instance.run();
-
+        
         //Then
         assertTrue(!documentToUpdate.equals(getMultipleIssueDocument()));
         assertTrue(getMultipleIssueSolution().equals(documentToUpdate.getText(0, documentToUpdate.getLength())));
     }
-
+    
     private StyledDocument getBasicTestDocument() throws BadLocationException {
         StyledDocument document = new DefaultStyledDocument();
         document.insertString(0, "public class TestClass {\n"

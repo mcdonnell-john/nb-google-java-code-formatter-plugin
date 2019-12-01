@@ -16,78 +16,79 @@
 package net.johnmcdonnell.netbeans.plugin.google.java.codeformatter.format;
 
 import com.github.difflib.patch.AbstractDelta;
+import java.util.List;
+import java.util.Objects;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 import javax.swing.text.StyledDocument;
 import org.openide.text.NbDocument;
 import org.openide.util.Exceptions;
 
-/**
- *
- * @author John McDonnell
- */
+/** @author John McDonnell */
 public class DocumentDeltaUpdater implements Runnable {
 
-    private final AbstractDelta<String> delta;
-    private final StyledDocument document;
+  private final List<AbstractDelta<String>> deltas;
+  private final StyledDocument document;
 
-    public DocumentDeltaUpdater(AbstractDelta<String> delta, StyledDocument document) {
-        this.delta = delta;
-        this.document = document;
-    }
+  public DocumentDeltaUpdater(List<AbstractDelta<String>> deltas, StyledDocument document) {
+    this.deltas = Objects.requireNonNull(deltas);
+    this.document = Objects.requireNonNull(document);
+  }
 
-    @Override
-    public void run() {
-        try {
-            if (null != delta.getType()) {
-                switch (delta.getType()) {
-                    case DELETE:
-                        removeLinesFromDocument();
-                        break;
-                    case INSERT:
-                        insertLinesToDocument();
-                        break;
-                    case CHANGE:
-                        removeLinesFromDocument();
-                        insertLinesToDocument();
-                        break;
-                    default:
-                        // Only other option is EQUALS and we have nothing to do
-                        break;
-                }
-            }
-        } catch (BadLocationException ex) {
-            Exceptions.printStackTrace(ex);
+  @Override
+  public void run() {
+    for (AbstractDelta<String> delta : deltas) {
+      try {
+        switch (delta.getType()) {
+          case DELETE:
+            removeLinesFromDocument(delta);
+            break;
+          case INSERT:
+            insertLinesToDocument(delta);
+            break;
+          case CHANGE:
+            removeLinesFromDocument(delta);
+            insertLinesToDocument(delta);
+            break;
+          default:
+            // Only other option is EQUALS and we have nothing to do
+            break;
         }
+      } catch (BadLocationException ex) {
+        Exceptions.printStackTrace(ex);
+      }
+    }
+  }
+
+  private void insertLinesToDocument(AbstractDelta<String> delta) throws BadLocationException {
+    int position = delta.getTarget().getPosition();
+    int findLineOffset = NbDocument.findLineOffset(document, position);
+
+    StringBuilder contentToAdd = new StringBuilder();
+    delta
+        .getTarget()
+        .getLines()
+        .forEach(
+            (String line) -> {
+              contentToAdd.append(line).append("\n");
+            });
+    document.insertString(findLineOffset, contentToAdd.toString(), null);
+  }
+
+  private void removeLinesFromDocument(AbstractDelta<String> delta) throws BadLocationException {
+    int startOfChangeLineNumber = delta.getTarget().getPosition();
+    int offset = 0;
+
+    for (String line : delta.getSource().getLines()) {
+      offset += line.length() + "\n".length();
     }
 
-    private void insertLinesToDocument() throws BadLocationException {
-        int position = delta.getSource().getPosition();
-        int findLineOffset = NbDocument.findLineOffset(document, position);
-        
-        StringBuffer contentToAdd = new StringBuffer();
-        delta.getTarget().getLines().forEach((String line) -> {
-            contentToAdd.append(line)
-                    .append("\n");
-        });
-        document.insertString(findLineOffset, contentToAdd.toString(), null);
+    try {
+      Element rootLineElement = NbDocument.findLineRootElement(document);
+      Element element = rootLineElement.getElement(startOfChangeLineNumber);
+      document.remove(element.getStartOffset(), offset);
+    } catch (BadLocationException ex) {
+      Exceptions.printStackTrace(ex);
     }
-
-    private void removeLinesFromDocument() throws BadLocationException {
-        int position = delta.getSource().getPosition();
-        int offset = 0;
-        
-        offset = delta.getSource().getLines()
-                .stream()
-                .map((line) -> line.length() + "\n".length())
-                .reduce(offset, Integer::sum);
-        
-        try {
-            Element rootLineElement = NbDocument.findLineRootElement(document);
-            Element element = rootLineElement.getElement(position);
-            document.remove(element.getStartOffset(), offset);
-        } catch (BadLocationException ex) {
-            Exceptions.printStackTrace(ex);
-        }
-    }
+  }
 }

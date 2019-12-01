@@ -21,34 +21,29 @@ import org.netbeans.api.project.Project;
 import org.netbeans.spi.project.ui.support.ProjectCustomizer;
 import org.openide.util.Lookup;
 
-/**
- *
- * @author John McDonnell
- */
+/** @author John McDonnell */
 @ProjectCustomizer.CompositeCategoryProvider.Registrations({
-        @ProjectCustomizer.CompositeCategoryProvider.Registration(
-                projectType="org-netbeans-modules-maven", 
-                category="Formatting",
-                position = 90
-        ),
-        @ProjectCustomizer.CompositeCategoryProvider.Registration(
-                projectType="org-netbeans-modules-gradle", 
-                category="Formatting",
-                position = 90
-        ),
-    })
-public class GoogleJavaFormatterProjectCustomizer implements ProjectCustomizer.CompositeCategoryProvider {
+  @ProjectCustomizer.CompositeCategoryProvider.Registration(
+      projectType = "org-netbeans-modules-maven",
+      category = "Formatting",
+      position = 90),
+  @ProjectCustomizer.CompositeCategoryProvider.Registration(
+      projectType = "org-netbeans-modules-gradle",
+      category = "Formatting",
+      position = 90),
+})
+public class GoogleJavaFormatterProjectCustomizer
+    implements ProjectCustomizer.CompositeCategoryProvider {
 
-    @Override
-    public ProjectCustomizer.Category createCategory(Lookup look) {
-        return ProjectCustomizer.Category.create("google-java-code-formatter",
-                 "Google Java Style",
-                null);
-    }
+  @Override
+  public ProjectCustomizer.Category createCategory(Lookup look) {
+    return ProjectCustomizer.Category.create(
+        "google-java-code-formatter", "Google Java Style", null);
+  }
 
-    @Override
-    public JComponent createComponent(ProjectCustomizer.Category cat, Lookup lookup) {
-        Project project = lookup.lookup(Project.class);
-        return new GoogleJavaFormatterPanel(cat, project);
-    }
+  @Override
+  public JComponent createComponent(ProjectCustomizer.Category cat, Lookup lookup) {
+    Project project = lookup.lookup(Project.class);
+    return new GoogleJavaFormatterPanel(cat, project);
+  }
 }
